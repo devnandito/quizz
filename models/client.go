@@ -46,17 +46,17 @@ func SeekClient() ([]Client, error) {
 }
 
 // CreateClient insert new client
-func CreateClient(cls *Client) error {
-	// var LastInsertId int
-	// conn := lib.NewConfig()
-	// db := conn.DsnString()
+func CreateClient(cls *Client)  error {
+	var LastInsertId int
+	conn := lib.NewConfig()
+	db := conn.DsnString()
 
-	// row := db.QueryRow("INSERT INTO clients(first_name,last_name,ci) VALUES($1,$2,$3) returning id;", cls.FirstName, cls.LastName, cls.LastName).Scan(&LastInsertId)
+	row := db.QueryRow("INSERT INTO clients(first_name,last_name,ci) VALUES($1,$2,$3) returning id;", cls.FirstName, cls.LastName, cls.LastName).Scan(&LastInsertId)
 	fmt.Println(cls.FirstName, cls.LastName, cls.Ci)
-	// if row != nil {
-	// 	panic(row)
-	// }
+	if row != nil {
+		panic(row)
+	}
 
-	// fmt.Println("Último id =", LastInsertId)
+	fmt.Println("Último id =", LastInsertId)
 	return nil
 }

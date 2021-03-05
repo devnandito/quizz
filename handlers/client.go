@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/devnandito/echogolang/models"
@@ -18,24 +17,20 @@ func GetAllClients(c echo.Context) error {
 }
 
 // CreateClient insert new client
-func CreateClient(c echo.Context) error {
-	firstname := c.QueryParam("firstname")
-	lastname := c.FormValue("lastname")
-	ci := c.QueryParam("ci")
+func CreateClient(c echo.Context) (err error) {
 
-	fmt.Println("Nomrbre:", firstname, "Apellido:", lastname, "Cedula", ci)
-	// birthday := c.Param("birthday")
-	// firstname, _ := strconv.Atoi(c.Param("firstname"))
+	cli := new(models.Client)
+	if err = c.Bind(cli); err != nil {
+		return
+	}
+
 	data := &models.Client{
-		FirstName: firstname,
-		LastName: lastname,
-		Ci: ci,
+		FirstName: cli.FirstName,
+		LastName: cli.LastName,
+		Ci: cli.Ci,
 	}
 
 	i := models.CreateClient(data)
-
-	if err := c.Bind(data); err != nil {
-		return err
-	}
 	return c.JSON(http.StatusCreated, i)
+
 }
