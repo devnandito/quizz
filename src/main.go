@@ -1,16 +1,15 @@
 package main
 
 import (
-	"net/http"
-
+	"github.com/devnandito/echogolang/handlers"
 	"github.com/labstack/echo"
 )
 
 func main() {
 	// Instanciar echo
 	e := echo.New()
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello World!")
-	})
+	e.GET("/", handlers.Home)
+	e.GET("/clients", handlers.GetAllClients)
+	e.POST("/clients", handlers.CreateClient)
 	e.Logger.Fatal(e.Start(":9000"))
 }
