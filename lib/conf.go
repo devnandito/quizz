@@ -8,6 +8,8 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 // Config connection
@@ -50,6 +52,16 @@ func NewConfig() *Config {
 func (c *Config) DsnString() (conn *sql.DB) {
 	dsn := fmt.Sprintf("host=%s dbname=%s sslmode=disable user=%s password=%s port=%s", c.Host, c.Name, c.User, c.Password, c.Port)
 	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
+// DsnStringGorm postgresql driver
+func (c *Config) DsnStringGorm() (conn *gorm.DB) {
+	dsn := fmt.Sprintf("host=%s dbname=%s sslmode=disable user=%s password=%s port=%s", c.Host, c.Name, c.User, c.Password, c.Port)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
