@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/devnandito/echogolang/models"
 	"github.com/labstack/echo"
@@ -45,14 +46,14 @@ func ResultSearch(c echo.Context) error {
 	if err != nil {
 		panic(err)
 	}
-		
 	return c.Render(http.StatusOK, "result.html", map[string]interface{}{
 		"Title": "Result search client",
 		"clients": response,
+		"count": len(response),
 	})
 }
 
-// ShowClients test
+// ShowClients list of client
 func ShowClientsGorm(c echo.Context) error {
 	response, err := cls.ShowClientGorm()
 	if err != nil {
@@ -65,17 +66,20 @@ func ShowClientsGorm(c echo.Context) error {
 	})
 }
 
-// SaveFormClient list client 
+// SaveFormClient save new client 
 func SaveFormClient(c echo.Context) error {
 	cli := new(models.Client)
 	if err := c.Bind(cli); err != nil {
 		return err
 	}
+	t := c.FormValue("birthday") + "T15:04:05"
+	Btime := cls.BirthdayTime(t)
 	data := &models.Client{
-		FirstName: cli.FirstName,
-		LastName: cli.LastName,
+		FirstName: strings.Title(cli.FirstName),
+		LastName: strings.Title(cli.LastName),
 		Ci: cli.Ci,
-		Sex: cli.Sex,
+		Birthday: Btime,
+		Sex: strings.ToUpper(cli.Sex),
 	}
 	response, err := cls.CreateClientGorm(data)
 	if err != nil {
@@ -88,7 +92,7 @@ func SaveFormClient(c echo.Context) error {
 	})
 }
 
-// EditFormClient editclient
+// EditFormClient render form edit client
 func EditFormClient(c echo.Context) error {
 	tmp := c.Param("id")
 	id, err := strconv.ParseInt(tmp, 10, 64)
@@ -108,12 +112,14 @@ func UpdateClientGorm(c echo.Context) error {
 	if err := c.Bind(cli); err != nil {
 		return err
 	}
-
+	t := c.FormValue("birthday") + "T15:04:05"
+	Btime := cls.BirthdayTime(t)
 	data := &models.Client{
-		FirstName: cli.FirstName,
-		LastName: cli.LastName,
+		FirstName: strings.Title(cli.FirstName),
+		LastName: strings.Title(cli.LastName),
 		Ci: cli.Ci,
-		Sex: cli.Sex,
+		Birthday: Btime,
+		Sex: strings.ToUpper(cli.Sex),
 	}
 
 	tmp := c.Param("id")

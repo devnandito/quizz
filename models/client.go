@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/devnandito/echogolang/lib"
@@ -31,7 +32,7 @@ func (c Client) BirthdayDateStr() string {
 }
 // BirthdayTime convert string to time
 func (c Client) BirthdayTime(timeStr string) (timeT time.Time) {
-	const Format = "2006-01-02"
+	const Format = "2006-01-02T15:04:05"
 	t, _ := time.Parse(Format, timeStr)
 	return t
 }
@@ -69,9 +70,30 @@ func SeekClient() ([]Client, error) {
 func (c Client) GetClientGorm(ci, firstname, lastname string) ([]Client, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	// name := strings.ToUpper(firstname)
-	// last := strings.ToUpper(lastname)
-	rows, err := db.Order("id asc").Model(&c).Where("ci = ?", ci).Rows()
+	name := strings.Title(firstname)
+	last := strings.Title(lastname)
+	var condition string
+	var values string
+	if name == "" && last == "" {
+		condition = "ci = ?"
+		values = ci
+	} else if ci == "" && last == "" {
+		condition = "first_name LIKE ? "
+		values = name+"%"
+	} else if ci == "" && name == "" {
+		condition = "last_name LIKE ?"
+		values = last+"%"
+	} else if ci == "" {
+		condition = "last_name LIKE ? OR first_name LIKE ?"
+		values = last+"%"+", "+name+"%"
+		} else if name == "" {
+			condition = "last_name LIKE ? OR ci = ?"
+			values = last+"%"+", "+ci
+	} else if last == "" {
+		condition = "first_name LIKE ? OR ci = ?"
+		values = name+"%"+", "+ci
+	}
+	rows, err := db.Order("id asc").Model(&c).Where(condition, values).Rows()
 	if err != nil {
 		panic(err)
 	}
@@ -84,62 +106,7 @@ func (c Client) GetClientGorm(ci, firstname, lastname string) ([]Client, error) 
 	}
 	return response, err
 	// db.AutoMigrate(&Client{})
-	// var count int64
-	// if name == "" && last == "" {
-	// 	response := db.Order("ci asc").Where("ci = ?", ci).Find(&c).Count(&count)
-	// 	return c, response.Error
-	// } else if ci == "" && last == "" {
-	// 	response := db.Order("first_name asc").Where("first_name LIKE ? ", name).Find(&c).Count(&count)
-	// 	return c, response.Error
-	// }
 }
-
-// func (c Client) GetClientGorm(ci, firstname, lastname string) (Client, error) {
-// 	conn := lib.NewConfig()
-// 	db := conn.DsnStringGorm()
-// 	name := strings.ToUpper(firstname)
-// 	last := strings.ToUpper(lastname)
-// 	// db.AutoMigrate(&Client{})
-// 	var count int64
-// 	if name == "" && last == "" {
-// 		response := db.Order("ci asc").Where("ci = ?", ci).Find(&c).Count(&count)
-// 		err := response.Error
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	} else if ci == "" && last == "" {
-// 		response := db.Order("first_name asc").Where("first_name LIKE ? ", name).Find(&c).Count(&count)
-// 		err := response.Error
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	} else if ci == "" && name == "" {
-// 		response := db.Order("last_name asc").Where("last_name LIKE ?", last+"%").Find(&c).Count(&count)
-// 		err := response.Error
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	} else if ci == "" {
-// 		response := db.Order("last_name asc, first_name asc").Where("last_name LIKE ? OR first_name LIKE ?", last+"%", name+"%").Find(&c).Count(&count)
-// 		err := response.Error
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	} else if name == "" {
-// 		response := db.Order("last_name asc, ci asc").Where("last_name LIKE ? OR ci = ?", last+"%", ci).Find(&c).Count(&count)
-// 		err := response.Error
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	} else if last == "" {
-// 		response := db.Order("first_name asc, ci asc").Where("first_name LIKE ? OR ci = ?", name+"%", ci).Find(&c).Count(&count)
-// 		err := response.Error
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 	}
-// 	return c, nil
-// }
 
 // EditClientGorm edit client
 // func EditClientGorm(id int64) ([]Client, error) {
@@ -163,6 +130,7 @@ func (c Client) CreateClientGorm(cls *Client) (Client, error) {
 		FirstName: cls.FirstName,
 		LastName: cls.LastName,
 		Ci: cls.Ci,
+		Birthday: cls.Birthday,
 		Sex: cls.Sex,
 	}
 	return data, response.Error
@@ -180,7 +148,7 @@ func (c Client) EditClientGorm(id int64) (Client, error) {
 func (c Client) SaveEditClientGorm(id int, cls *Client) (Client, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	response := db.Model(&c).Where("id = ?", id).Updates(Client{FirstName: cls.FirstName, LastName: cls.LastName, Ci: cls.Ci, Sex: cls.Sex})
+	response := db.Model(&c).Where("id = ?", id).Updates(Client{FirstName: cls.FirstName, LastName: cls.LastName, Ci: cls.Ci, Birthday: cls.Birthday, Sex: cls.Sex})
 	return c, response.Error
 }
 

@@ -44,12 +44,16 @@
             >
               <thead>
                 <tr>
+                  <th colspan="7">Total record: {{index . "count"}}</th>
+                </tr>
+                <tr>
                   <th>ID</th>
                   <th>FirstName</th>
                   <th>LastName</th>
                   <th>Ci</th>
                   <th>Birthday</th>
                   <th>Sexo</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -59,8 +63,12 @@
                   <td>{{.FirstName}}</td>
                   <td>{{.LastName}}</td>
                   <td>{{.Ci}}</td>
-                  <td>{{.Birthday}}</td>
+                  <td>{{.BirthdayDateStr}}</td>
                   <td>{{.Sex}}</td>
+                  <td>
+                    <a href="/clients/edit/{{.ID}}">Edit</a> -
+                    <a href="/clients/delete/{{.ID}}">Delete</a>
+                  </td>
                 </tr>
                 {{end}}
               </tbody>
