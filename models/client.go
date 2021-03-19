@@ -14,7 +14,7 @@ type Client struct {
 	gorm.Model
 	FirstName string `json:"firstname"`
 	LastName string `json:"lastname"`
-	Ci string `json:"ci"`
+	Ci string `json:"ci" validate:"required"`
 	Birthday time.Time `json:"birthday"`
 	Sex string `json:"sex"`
 	Nationality string `json:"nationality"`
@@ -24,7 +24,54 @@ type Client struct {
 	Code3 string `json:"code3"`
 	Direction string `json:"direction"`
 	Phone string `json:"phone"`
+	Code string
 }
+
+type FormClient struct {
+	Ci string
+	FirstName string
+	LastName string
+}
+
+// func (f FormClient) CustomValidator(val string) bool {
+// 	return len(val) == 4
+// }
+
+// func (f FormClient) Messages() map[string]string {
+// 	return validate.MS{
+// 		"required": "oh! the {field} is required",
+// 		"Ci.required": "Ci is required",
+// 	}
+// }
+
+// func (f FormClient) Translates() map[string]string {
+// 	return validate.MS{
+// 		"Ci": "Document client",
+// 	}
+// }
+
+// func (c Client) Validate() {
+// 	c.Errors = make(map[string]string)
+// 	if strings.TrimSpace(c.Ci) == "" {
+// 		c.Errors["ci"] = "Enter a ci"
+// 	}
+// 	return len(c.Errors) == 0
+// }
+// type Client struct {
+// 	gorm.Model
+// 	FirstName string `json:"firstname"`
+// 	LastName string `json:"lastname"`
+// 	Ci string `json:"ci" validate:"required"`
+// 	Birthday time.Time `json:"birthday"`
+// 	Sex string `json:"sex"`
+// 	Nationality string `json:"nationality"`
+// 	DesType string `json:"destype"`
+// 	Code1 string `json:"code1"`
+// 	Code2 string `json:"code2"`
+// 	Code3 string `json:"code3"`
+// 	Direction string `json:"direction"`
+// 	Phone string `json:"phone"`
+// }
 
 // BirthdayDateStr conver to string
 func (c Client) BirthdayDateStr() string {
@@ -37,35 +84,6 @@ func (c Client) BirthdayTime(timeStr string) (timeT time.Time) {
 	return t
 }
 
-// SeekClient show all client
-func SeekClient() ([]Client, error) {
-
-	conn := lib.NewConfig()
-	db := conn.DsnString()
-	rows, err := db.Query("SELECT id, first_name, last_name, ci, birthday FROM clients LIMIT 20")
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer rows.Close()
-
-	var cls []Client
-	for rows.Next() {
-		var cl Client
-		err := rows.Scan(&cl.ID, &cl.FirstName, &cl.LastName, &cl.Ci, &cl.Birthday)
-		if err != nil {
-			return nil, err
-		}
-		cls = append(cls, cl)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return cls, nil
-}
-
 // GetClientGorm show all client
 func (c Client) GetClientGorm(ci, firstname, lastname string) ([]Client, error) {
 	conn := lib.NewConfig()
@@ -73,27 +91,39 @@ func (c Client) GetClientGorm(ci, firstname, lastname string) ([]Client, error) 
 	name := strings.Title(firstname)
 	last := strings.Title(lastname)
 	var condition string
-	var values string
+	var value1 string
+	var value2 string
+	var val []string
 	if name == "" && last == "" {
 		condition = "ci = ?"
-		values = ci
+		val = append(val, ci)
 	} else if ci == "" && last == "" {
 		condition = "first_name LIKE ? "
-		values = name+"%"
+		val = append(val, name+"%")
 	} else if ci == "" && name == "" {
 		condition = "last_name LIKE ?"
-		values = last+"%"
+		val = append(val, last+"%")
 	} else if ci == "" {
 		condition = "last_name LIKE ? OR first_name LIKE ?"
-		values = last+"%"+", "+name+"%"
+		val = append(val, last+"%")
+		val = append(val, name+"%")
 		} else if name == "" {
 			condition = "last_name LIKE ? OR ci = ?"
-			values = last+"%"+", "+ci
+			val = append(val, last+"%")
+			val = append(val, ci)
 	} else if last == "" {
 		condition = "first_name LIKE ? OR ci = ?"
-		values = name+"%"+", "+ci
+		val = append(val, name+"%")
+		val = append(val, ci)
 	}
-	rows, err := db.Order("id asc").Model(&c).Where(condition, values).Rows()
+	if len(val) == 2 {
+		value1 = val[0]
+		value2 = val[1]
+	} else {
+		value1 = val[0]
+		value2 = ""
+	}
+	rows, err := db.Order("id asc").Model(&c).Where(condition, value1, value2).Rows()
 	if err != nil {
 		panic(err)
 	}
@@ -105,21 +135,25 @@ func (c Client) GetClientGorm(ci, firstname, lastname string) ([]Client, error) 
 		response = append(response, item)
 	}
 	return response, err
-	// db.AutoMigrate(&Client{})
 }
 
-// EditClientGorm edit client
-// func EditClientGorm(id int64) ([]Client, error) {
-// 	client := []Client{}
-// 	conn := lib.NewConfig()
-// 	db := conn.DsnStringGorm()
-// 	response := db.Find(&client, id)
-// 	err := response.Error
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	return client, nil
-// }
+// ApiGetClientGorm show all client
+func (c Client) ApiGetClientGorm(ci string) ([]Client, error) {
+	conn := lib.NewConfig()
+	db := conn.DsnStringGorm()
+	rows, err := db.Order("id asc").Model(&c).Where("firstname LIKE ?", ci).Rows()
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var response []Client
+	for rows.Next() {
+		var item Client
+		db.ScanRows(rows, &item)
+		response = append(response, item)
+	}
+	return response, err
+}
 
 //CreateClientGorm insert new client
 func (c Client) CreateClientGorm(cls *Client) (Client, error) {
@@ -164,6 +198,7 @@ func (c Client) DeleteClientGorm(id int) error {
 func (c Client) ShowClientGorm() ([]Client, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
+	db.AutoMigrate(&Client{})
 	rows, err := db.Order("id asc").Model(&c).Rows()
 	if err != nil {
 		panic(err)
@@ -176,6 +211,35 @@ func (c Client) ShowClientGorm() ([]Client, error) {
 		response = append(response, item)
 	}
 	return response, err
+}
+
+// SeekClient show all client
+func SeekClient() ([]Client, error) {
+
+	conn := lib.NewConfig()
+	db := conn.DsnString()
+	rows, err := db.Query("SELECT id, first_name, last_name, ci, birthday FROM clients LIMIT 20")
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer rows.Close()
+
+	var cls []Client
+	for rows.Next() {
+		var cl Client
+		err := rows.Scan(&cl.ID, &cl.FirstName, &cl.LastName, &cl.Ci, &cl.Birthday)
+		if err != nil {
+			return nil, err
+		}
+		cls = append(cls, cl)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return cls, nil
 }
 
 // CreateClient insert new client

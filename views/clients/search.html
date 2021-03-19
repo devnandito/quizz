@@ -40,33 +40,67 @@
         <div class="container">
           <div class="row">
             <form action="/clients/search" method="post">
-              <div class="input-group">
-                <input
-                  type="search"
-                  class="form-control rounded"
-                  placeholder="Name"
-                  aria-label="Name"
-                  aria-describedby="search-addon"
-                  name="first_name"
-                />
-                <input
-                  type="search"
-                  class="form-control rounded"
-                  placeholder="Lastname"
-                  aria-label="Lastname"
-                  aria-describedby="search-addon"
-                  name="last_name"
-                />
-                <input
-                  type="search"
-                  class="form-control rounded"
-                  placeholder="Document"
-                  aria-label="Document"
-                  aria-describedby="search-addon"
-                  name="document"
-                />
-                <button type="submit" class="btn btn-warning">Search</button>
-              </div>
+              {{if index . "errors" }}
+                {{$data := index . "data"}}
+                <span class="error alert-danger">{{index . "errors"}}</span>
+                <div class="input-group">
+                  <input
+                    type="search"
+                    class="form-control rounded"
+                    placeholder="Name"
+                    aria-label="Name"
+                    aria-describedby="search-addon"
+                    name="firstname"
+                    value='{{$data.FirstName}}'
+                  />
+                  <input
+                    type="search"
+                    class="form-control rounded"
+                    placeholder="Lastname"
+                    aria-label="Lastname"
+                    aria-describedby="search-addon"
+                    name="lastname"
+                    value='{{$data.LastName}}'
+                  />
+                  <input
+                    type="search"
+                    class="form-control rounded"
+                    placeholder="Document"
+                    aria-label="Document"
+                    aria-describedby="search-addon"
+                    name="ci"
+                    value='{{$data.Ci}}'
+                  />
+                </div>
+              {{else}}
+                <div class="input-group">
+                  <input
+                    type="search"
+                    class="form-control rounded"
+                    placeholder="Name"
+                    aria-label="Name"
+                    aria-describedby="search-addon"
+                    name="firstname"
+                  />
+                  <input
+                    type="search"
+                    class="form-control rounded"
+                    placeholder="Lastname"
+                    aria-label="Lastname"
+                    aria-describedby="search-addon"
+                    name="lastname"
+                  />
+                  <input
+                    type="search"
+                    class="form-control rounded"
+                    placeholder="Document"
+                    aria-label="Document"
+                    aria-describedby="search-addon"
+                    name="ci"
+                  />
+                </div>
+              {{end}}
+              <button type="submit" class="btn btn-warning">Search</button>
             </form>
           </div>
         </div>

@@ -28,12 +28,11 @@ func (t *TemplateRegistry) Render(w io.Writer, name string, data interface{}, c 
 func main() {
 	// Instanciar echo
 	e := echo.New()
-	e.GET("/clients", api.GetAllClients)
-	e.GET("/clients/list", api.GetAllClientsGorm)
-	e.POST("/clients", api.CreateClient)
-	e.PUT("/clients/:ci", api.UpdateClient)
-	e.DELETE("/clients/:ci", api.DeleteClient)
-	e.GET("/clients/:ci", api.SearchClient)
+	e.GET("/api/clients", api.ApiShowClients)
+	e.POST("/api/clients", api.ApiCreateClient)
+	e.PUT("/api/clients/:id", api.ApiUpdateClient)
+	e.DELETE("/api/clients/:id", api.ApiDeleteClient)
+	e.GET("/api/clients/:ci", api.ApiSearchClient)
 	
 	templates := make(map[string]*template.Template)
 	templates["index.html"] = template.Must(template.ParseFiles("views/clients/index.html", "views/base.html"))

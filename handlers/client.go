@@ -1,25 +1,15 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/devnandito/echogolang/models"
+	"github.com/gookit/validate"
 	"github.com/labstack/echo"
 )
-
-// ShowClients test
-func ShowClients(c echo.Context) error {
-	cls, err := models.SeekClient()
-	if err != nil {
-		panic(err)
-	}
-	return c.Render(http.StatusOK, "index.html", map[string]interface{}{
-		"Title": "Clients",
-		"clients": cls,
-	})
-}
 
 // SearchForm render form
 func SearchForm(c echo.Context) error {
@@ -38,20 +28,177 @@ func ShowFormClient(c echo.Context) error {
 var cls models.Client
 
 // ResultSearch lista client 
-func ResultSearch(c echo.Context) error {
-	document :=c.FormValue("document")
-	firstname := c.FormValue("first_name")
-	lastname := c.FormValue("last_name")
-	response, err := cls.GetClientGorm(document, firstname, lastname)
+func ResultSearch(c echo.Context) (err error) {
+	document :=c.FormValue("ci")
+	firstname := c.FormValue("firstname")
+	lastname := c.FormValue("lastname")
+	data, err := validate.FromRequest(c.Request())
+
 	if err != nil {
-		panic(err)
+			panic(err)
 	}
-	return c.Render(http.StatusOK, "result.html", map[string]interface{}{
-		"Title": "Result search client",
-		"clients": response,
-		"count": len(response),
-	})
+
+	v := data.Create()
+	// v.AddRule("ci", "required")
+	v.AddRule("firstname", "required")
+	v.AddMessages(map[string]string{"required": "{field} requerido"})
+	if v.Validate() {
+		form := &models.FormClient{}
+		v.BindSafeData(form)
+		response, err := cls.GetClientGorm(document, firstname, lastname)
+		if err != nil {
+			panic(err)
+		}
+		return c.Render(http.StatusOK, "result.html", map[string]interface{}{
+			"Title": "Result search client",
+			"clients": response,
+			"count": len(response),
+		})
+	} else {
+		var s string
+		data := &models.FormClient{
+			Ci: document,
+			FirstName: firstname,
+			LastName: lastname,
+		}
+		for _, value := range v.Errors {
+			s = fmt.Sprintf("%s", value["required"])
+		}
+		return c.Render(http.StatusOK, "search.html", map[string]interface{}{
+			"Title": "Result search client",
+			"errors": s,
+			"data": data,
+		})
+	}
 }
+// func ResultSearch(c echo.Context) (err error) {
+// 	document :=c.FormValue("ci")
+// 	firstname := c.FormValue("firstname")
+// 	lastname := c.FormValue("lastname")
+// 	data, err := validate.FromRequest(c.Request())
+// 	if err != nil {
+// 			panic(err)
+// 	}
+
+// 	v := data.Create()
+// 	v.AddRule("ci", "required")
+// 	// v.AddRule("firstname", "required")
+// 	v.AddMessages(map[string]string{"required": "{field} requerido"})
+// 	if v.Validate() {
+// 		form := &models.FormClient{}
+// 		v.BindSafeData(form)
+// 		response, err := cls.GetClientGorm(document, firstname, lastname)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		return c.Render(http.StatusOK, "result.html", map[string]interface{}{
+// 			"Title": "Result search client",
+// 			"clients": response,
+// 			"count": len(response),
+// 		})
+// 	} else {
+// 		// fmt.Println(len(v.Errors.All()))
+// 		var s string
+// 		// var r []map[string]string
+// 		for _, value := range v.Errors {
+// 			// fmt.Sprintf("key:", key, "value:", value["required"])
+// 			s = fmt.Sprintf("%s", value["required"])
+// 			// r = append(r, v.Errors.Field(key))
+// 		}
+// 		// r = append(r, v.Errors.Field("firstname"))
+// 		// fmt.Println(len(s))
+// 		// for key, value := range r {
+// 		// 	fmt.Println(key, value)
+// 		// }
+// 		// fmt.Println(v.Errors.FieldOne("ci"))
+// 		// fmt.Println(v.Errors.FieldOne("firstname"))
+// 		// ci := v.Errors.Field("ci")
+// 		// firstname := v.Errors.Field("firstname")
+// 		// fmt.Println(ci["required"])
+// 		// fmt.Println(firstname["required"])
+// 		return c.Render(http.StatusOK, "search.html", map[string]interface{}{
+// 			"Title": "Result search client",
+// 			"errors": s,
+// 		})
+// 	}
+// }
+
+// func ResultSearch(c echo.Context) (err error) {
+// 	document :=c.FormValue("ci")
+// 	firstname := c.FormValue("firstname")
+// 	lastname := c.FormValue("lastname")
+// 	data, err := validate.FromRequest(c.Request())
+// 	if err != nil {
+// 			panic(err)
+// 	}
+// 	v := data.Create()
+// 	v.AddRule("ci", "required")
+// 	if v.Validate() {
+// 		form := &models.FormClient{}
+// 		v.BindSafeData(form)
+// 		response, err := cls.GetClientGorm(document, firstname, lastname)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		return c.Render(http.StatusOK, "result.html", map[string]interface{}{
+// 			"Title": "Result search client",
+// 			"clients": response,
+// 			"count": len(response),
+// 		})
+// 	} else {
+// 		fmt.Println(v.Errors.Field("ci"))
+// 		return
+// 	}
+// }
+
+// func ResultSearch(c echo.Context) (err error) {
+// 	v := validate.Struct(cls)
+// 	document :=c.FormValue("ci")
+// 	firstname := c.FormValue("firstname")
+// 	lastname := c.FormValue("lastname")
+// 	if v.Validate() {
+// 		response, err := cls.GetClientGorm(document, firstname, lastname)
+// 		if err != nil {
+// 			panic(err)
+// 		}
+// 		return c.Render(http.StatusOK, "result.html", map[string]interface{}{
+// 			"Title": "Result search client",
+// 			"clients": response,
+// 			"count": len(response),
+// 		})
+// 	} else {
+// 		fmt.Println(v.Errors)
+// 		return
+// 	}
+	// data := &models.Client{
+	// 	Ci: document,
+	// }
+	// if data.Validate() == false {
+	// 	fmt.Println(data.Errors)
+	// }
+	// val := &models.CustomValidator{validator: validator.New()}
+	// if err = c.Validate(cls); err != nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	// }
+	// data := &DataForm{
+	// 	FirstName: firstname,
+	// 	LastName: lastname,
+	// 	Ci: document,
+	// }
+	// var validate = validator.New()
+	// errs := validate.Struct(cls)
+	// var errors []string
+	// if errs != nil {
+	// 	for _, value := range errs.(validator.ValidationErrors) {
+	// 		errors = append(errors, value.Tag())
+	// 	}
+	// 	return c.Render(http.StatusOK, "search.html", map[string]interface{}{
+	// 		"Title": "Result search client",
+	// 		"err": errors,
+	// 		"data": data,
+	// 	})
+	// }
+// }
 
 // ShowClients list of client
 func ShowClientsGorm(c echo.Context) error {

@@ -3,6 +3,9 @@ module github.com/devnandito/echogolang
 go 1.15
 
 require (
+	github.com/go-playground/validator v9.31.0+incompatible
+	github.com/go-playground/validator/v10 v10.4.1
+	github.com/gookit/validate v1.2.9
 	github.com/joho/godotenv v1.3.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect

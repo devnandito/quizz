@@ -9,18 +9,11 @@ import (
 	"github.com/labstack/echo"
 )
 
-// GetAllClients show all client in json
-func GetAllClients(c echo.Context) error {
-	cls, err := models.SeekClient()
-	if err != nil {
-		panic(err)
-	}
-	return c.JSON(http.StatusOK, cls)
-}
+var cls models.Client
 
-// GetAllClientsGorm show all client in json
-func GetAllClientsGorm(c echo.Context) error {
-	cls, err := models.SeekClient()
+// GetAllClients show all client in json
+func ApiShowClients(c echo.Context) error {
+	cls, err := cls.ShowClientGorm()
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +21,7 @@ func GetAllClientsGorm(c echo.Context) error {
 }
 
 // CreateClient insert new client
-func CreateClient(c echo.Context) (err error) {
+func ApiCreateClient(c echo.Context) (err error) {
 
 	cli := new(models.Client)
 	if err = c.Bind(cli); err != nil {
@@ -42,13 +35,13 @@ func CreateClient(c echo.Context) (err error) {
 		Birthday: cli.Birthday,
 	}
 
-	i, _ := models.CreateClient(data)
+	i, _ := cls.CreateClientGorm(data)
 	return c.JSON(http.StatusCreated, i)
 
 }
 
 // UpdateClient update a client
-func UpdateClient(c echo.Context) error {
+func ApiUpdateClient(c echo.Context) error {
 	cli := new(models.Client)
 	if err := c.Bind(cli); err != nil {
 		return err
@@ -60,22 +53,34 @@ func UpdateClient(c echo.Context) error {
 		Ci: cli.Ci,
 	}
 
-	ci := c.Param("ci")
-	i, _ := models.UpdateClient(ci, data)
+	tmp := c.Param("id")
+	id, err := strconv.Atoi(tmp)
+		if err != nil {
+		panic(err)
+	}
+	i, _ := cls.SaveEditClientGorm(id, data)
 	return c.JSON(http.StatusOK, i)
 }
 
 // DeleteClient delete a client
-func DeleteClient(c echo.Context) error {
-	ci := c.Param("ci")
-	i := models.DeleteClient(ci)
-	fmt.Println("Delete:", i)
+func ApiDeleteClient(c echo.Context) error {
+	tmp := c.Param("id")
+	id, err := strconv.Atoi(tmp)
+	i := cls.DeleteClientGorm(id)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Delete id number:", id ,i)
 	return c.NoContent(http.StatusNoContent)
 }
 
 // SearchClient find a client
-func SearchClient(c echo.Context) error {
-	ci, _ := strconv.Atoi(c.Param("ci"))
-	cls, _ := models.GetClient(ci)
+func ApiSearchClient(c echo.Context) error {
+	ci := c.Param("ci")
+	cls, err := cls.ApiGetClientGorm(ci)
+	fmt.Println(cls)
+	if err != nil {
+		panic(err)
+	}
 	return c.JSON(http.StatusOK, cls)
 }
