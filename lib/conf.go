@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
@@ -46,16 +45,6 @@ func NewConfig() *Config {
 		Password: pwd,
 		Port: port,
 	}
-}
-
-// DsnString postgresql driver
-func (c *Config) DsnString() (conn *sql.DB) {
-	dsn := fmt.Sprintf("host=%s dbname=%s sslmode=disable user=%s password=%s port=%s", c.Host, c.Name, c.User, c.Password, c.Port)
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		panic(err)
-	}
-	return db
 }
 
 // DsnStringGorm postgresql driver

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/devnandito/echogolang/models"
+	"github.com/devnandito/quizz/models"
 	"github.com/labstack/echo"
 )
 
@@ -76,11 +76,29 @@ func ApiDeleteClient(c echo.Context) error {
 
 // SearchClient find a client
 func ApiSearchClient(c echo.Context) error {
-	ci := c.Param("ci")
-	cls, err := cls.ApiGetClientGorm(ci)
+	id := c.Param("id")
+	cls, err := cls.ApiGetClientGorm(id)
 	fmt.Println(cls)
 	if err != nil {
 		panic(err)
 	}
 	return c.JSON(http.StatusOK, cls)
+}
+
+func ApiFormSearchClient(c echo.Context) error {
+	cls := new(models.Client)
+	if err := c.Bind(cls); err != nil {
+		return err
+	}
+
+	data := &models.Client{
+		FirstName: cls.FirstName,
+	}
+
+	response, err := cls.ApiSearchClientGorm(data)
+	fmt.Println(response)
+	if err != nil {
+		panic(err)
+	}
+	return c.JSON(http.StatusOK, response)
 }

@@ -1,11 +1,10 @@
 package models
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
-	"github.com/devnandito/echogolang/lib"
+	"github.com/devnandito/quizz/lib"
 	"gorm.io/gorm"
 )
 
@@ -14,7 +13,7 @@ type Client struct {
 	gorm.Model
 	FirstName string `json:"firstname"`
 	LastName string `json:"lastname"`
-	Ci string `json:"ci" validate:"required"`
+	Ci string `json:"ci"`
 	Birthday time.Time `json:"birthday"`
 	Sex string `json:"sex"`
 	Nationality string `json:"nationality"`
@@ -32,46 +31,6 @@ type FormClient struct {
 	FirstName string
 	LastName string
 }
-
-// func (f FormClient) CustomValidator(val string) bool {
-// 	return len(val) == 4
-// }
-
-// func (f FormClient) Messages() map[string]string {
-// 	return validate.MS{
-// 		"required": "oh! the {field} is required",
-// 		"Ci.required": "Ci is required",
-// 	}
-// }
-
-// func (f FormClient) Translates() map[string]string {
-// 	return validate.MS{
-// 		"Ci": "Document client",
-// 	}
-// }
-
-// func (c Client) Validate() {
-// 	c.Errors = make(map[string]string)
-// 	if strings.TrimSpace(c.Ci) == "" {
-// 		c.Errors["ci"] = "Enter a ci"
-// 	}
-// 	return len(c.Errors) == 0
-// }
-// type Client struct {
-// 	gorm.Model
-// 	FirstName string `json:"firstname"`
-// 	LastName string `json:"lastname"`
-// 	Ci string `json:"ci" validate:"required"`
-// 	Birthday time.Time `json:"birthday"`
-// 	Sex string `json:"sex"`
-// 	Nationality string `json:"nationality"`
-// 	DesType string `json:"destype"`
-// 	Code1 string `json:"code1"`
-// 	Code2 string `json:"code2"`
-// 	Code3 string `json:"code3"`
-// 	Direction string `json:"direction"`
-// 	Phone string `json:"phone"`
-// }
 
 // BirthdayDateStr conver to string
 func (c Client) BirthdayDateStr() string {
@@ -138,10 +97,64 @@ func (c Client) GetClientGorm(ci, firstname, lastname string) ([]Client, error) 
 }
 
 // ApiGetClientGorm show all client
-func (c Client) ApiGetClientGorm(ci string) ([]Client, error) {
+func (c Client) ApiGetClientGorm(id string) ([]Client, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	rows, err := db.Order("id asc").Model(&c).Where("firstname LIKE ?", ci).Rows()
+	rows, err := db.Order("id asc").Model(&c).Where("id = ?", id).Rows()
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var response []Client
+	for rows.Next() {
+		var item Client
+		db.ScanRows(rows, &item)
+		response = append(response, item)
+	}
+	return response, err
+}
+
+// ApiSearchClientGorm show all client
+func (c Client) ApiSearchClientGorm(cls *Client) ([]Client, error) {
+	conn := lib.NewConfig()
+	db := conn.DsnStringGorm()
+	list := strings.Fields(cls.FirstName)
+	var name string
+	var lastname string
+	var condition string
+	var val[] string
+
+	if len(list) < 2 {
+		condition = "first_name LIKE ? OR last_name LIKE ?"
+		name = list[0]
+		val = append(val, name+"%")
+	} else if len(list) == 2 {
+		condition = "first_name LIKE ?"
+		name = list[0] + " " + list[1]
+		val = append(val, name+"%")
+	} else if len(list) == 3 {
+		condition = "first_name LIKE ? OR last_name LIKE ?"
+		name = list[0] + " " + list[1]
+		lastname = list[2]
+		val = append(val, name+"%")
+		val = append(val, lastname+"%")
+	} else {
+		condition = "first_name LIKE ? OR last_name LIKE ?"
+		name = list[0] + " " + list[1]
+		lastname = list[2] + " " + list[3]
+		val = append(val, name+"%")
+		val = append(val, lastname+"%")
+	}
+
+	if len(val) == 1 {
+		name = val[0]
+		lastname = val[0]
+	} else {
+		name = val[0]
+		lastname = val[1]
+	}
+
+	rows, err := db.Order("id asc").Model(&c).Where(condition, name, lastname).Rows()
 	if err != nil {
 		panic(err)
 	}
@@ -212,131 +225,3 @@ func (c Client) ShowClientGorm() ([]Client, error) {
 	}
 	return response, err
 }
-
-// SeekClient show all client
-func SeekClient() ([]Client, error) {
-
-	conn := lib.NewConfig()
-	db := conn.DsnString()
-	rows, err := db.Query("SELECT id, first_name, last_name, ci, birthday FROM clients LIMIT 20")
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer rows.Close()
-
-	var cls []Client
-	for rows.Next() {
-		var cl Client
-		err := rows.Scan(&cl.ID, &cl.FirstName, &cl.LastName, &cl.Ci, &cl.Birthday)
-		if err != nil {
-			return nil, err
-		}
-		cls = append(cls, cl)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return cls, nil
-}
-
-// CreateClient insert new client
-func CreateClient(cls *Client)  (*Client, error) {
-	conn := lib.NewConfig()
-	db := conn.DsnString()
-
-	row, err := db.Prepare("INSERT INTO clients(first_name,last_name,ci,birthday) VALUES($1,$2,$3,$4)")
-	if err != nil {
-		panic(err)
-	}
-
-	defer row.Close()
-
-	row.Exec(cls.FirstName, cls.LastName, cls.Ci, cls.Birthday)
-	fmt.Println(cls.FirstName, cls.LastName, cls.Ci, cls.Birthday)
-	var i = &Client{
-		FirstName: cls.FirstName,
-		LastName: cls.LastName,
-		Ci: cls.Ci,
-		Birthday: cls.Birthday,
-	}
-	return i, nil
-}
-
-// UpdateClient update client
-func UpdateClient(ci string, cls *Client)  (*Client, error) {
-	conn := lib.NewConfig()
-	db := conn.DsnString()
-
-	row, err := db.Prepare("UPDATE clients SET first_name = $1, last_name = $2 WHERE ci = $3")
-	if err != nil {
-		panic(err)
-	}
-
-	defer row.Close()
-
-	row.Exec(cls.FirstName, cls.LastName, ci)
-	fmt.Println(cls.FirstName, cls.LastName, ci)
-	var i = &Client{
-		FirstName: cls.FirstName,
-		LastName: cls.LastName,
-	}
-	return i, nil
-}
-
-// DeleteClient delete client
-func DeleteClient(ci string)  error {
-	conn := lib.NewConfig()
-	db := conn.DsnString()
-
-	row, err := db.Prepare("DELETE FROM clients WHERE ci=$1")
-	if err != nil {
-		panic(err)
-	}
-
-	defer row.Close()
-	row.Exec(ci)
-	return nil
-}
-
-// GetClient search a client
-func GetClient(ci int) ([]Client, error) {
-	conn := lib.NewConfig()
-	db := conn.DsnString()
-	row, err := db.Query("SELECT id, first_name, last_name, ci, birthday FROM clients WHERE ci=$1", ci)
-
-	if err != nil {
-		panic(err)
-	}
-
-	defer row.Close()
-
-	var cls []Client
-	for row.Next() {
-		var cl Client
-		err := row.Scan(&cl.ID, &cl.FirstName, &cl.LastName, &cl.Ci, &cl.Birthday)
-		if err != nil {
-			return nil, err
-		}
-		cls = append(cls, cl)
-	}
-
-	return cls, nil
-}
-
-// func CreateClient(cls *Client)  error {
-// 	var LastInsertId int
-// 	conn := lib.NewConfig()
-// 	db := conn.DsnString()
-
-// 	row := db.QueryRow("INSERT INTO clients(first_name,last_name,ci) VALUES($1,$2,$3) returning id;", cls.FirstName, cls.LastName, cls.LastName).Scan(&LastInsertId)
-// 	fmt.Println(cls.FirstName, cls.LastName, cls.Ci)
-// 	if row != nil {
-// 		panic(row)
-// 	}
-
-// 	fmt.Println("Último id =", LastInsertId)
-// 	return nil
-// }
