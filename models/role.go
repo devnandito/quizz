@@ -30,3 +30,15 @@ func (r Role) ShowRoleGorm() ([]Role, error) {
 	}
 	return response, err
 }
+
+// CreateRoleGorm insert a new role
+func (r Role) CreateRoleGorm(rol *Role) (Role, error) {
+	conn := lib.NewConfig()
+	db := conn.DsnStringGorm()
+	response := db.Create(&r)
+	data := Role {
+		Description: r.Description,
+	}
+
+	return data, response.Error
+}
