@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/devnandito/quizz/api"
+	"github.com/devnandito/quizz/helper"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 )
@@ -36,12 +37,29 @@ func main() {
 	// EndPoint users
 	e.GET("/api/users", api.ApiShowUser)
 	e.POST("/api/users", api.ApiCreateUser)
+	e.PUT("/api/users/:id", api.ApiUpdateUser)
 	// EndPoint roles
-	e.GET("/api/roles", api.ApiShowRole)
+	//e.GET("/api/roles", api.ApiShowRole)
 	e.POST("/api/roles", api.ApiCreateRole)
+	e.PUT("/api/roles/:id", api.ApiUpdateRole)
 	// EndPoint modules
 	e.GET("/api/modules", api.ApiShowModule)
 	// EndPoint operations
 	e.GET("/api/operations", api.ApiShowOperation)
+	// Generator token
+	e.POST("/api/gentoken", api.ApiGeneratorToken)
+	// Login
+	e.POST("api/sign-in", api.SignIn)
+	// Restricted group
+	r := e.Group("restricted")
+	// Configure middleware with custom claims type
+	config := middleware.JWTConfig{
+		Claims: &helper.JwtCustomClaims{},
+		SigningKey: []byte("secret"),
+	}
+
+	r.Use(middleware.JWTWithConfig(config))
+	r.GET("", api.ApiShowRole)
+
 	e.Logger.Fatal(e.Start(":9000"))
 }

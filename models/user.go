@@ -58,3 +58,18 @@ func (u User) CreateUserGorm(usr *User) (User, error) {
 
 	return data, response.Error
 }
+
+// UpdateUserGorm update user
+func (u User) UpdateUserGorm(id int, usr *User) (User, error) {
+	conn := lib.NewConfig()
+	db := conn.DsnStringGorm()
+	response := db.Model(&u).Where("id = ?", id).Updates(User{Username: usr.Username, Email: usr.Email, Token: usr.Token, RoleID: usr.RoleID})
+	return u, response.Error
+}
+
+func (u User) SearchUser(usr *User) (User, error) {
+	conn := lib.NewConfig()
+	db := conn.DsnStringGorm()
+	response := db.Where("username = ?", usr.Username).Find(&u)
+	return u, response.Error
+}

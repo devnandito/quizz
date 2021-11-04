@@ -12,6 +12,10 @@ type Role struct {
 	Operation []Operation `gorm:"many2many:role_operations;"`
 }
 
+// var (
+// 	roles = map[int]*Role{}
+// )
+
 // ShowRoleGorm show role
 func (r Role) ShowRoleGorm() ([]Role, error) {
 	conn := lib.NewConfig()
@@ -41,4 +45,12 @@ func (r Role) CreateRoleGorm(rol *Role) (Role, error) {
 	}
 
 	return data, response.Error
+}
+
+// UpdateRoleGorm  role edit
+func (r Role) UpdateRoleGorm(id int, data *Role) (Role, error) {
+	conn := lib.NewConfig()
+	db := conn.DsnStringGorm()
+	response := db.Model(&r).Where("id = ?", id).Update("description", data.Description)	
+	return r, response.Error
 }
