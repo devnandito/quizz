@@ -53,9 +53,10 @@ func main() {
 	// Restricted group
 	r := e.Group("restricted")
 	// Configure middleware with custom claims type
+	var mySign = helper.GetSecretKey()
 	config := middleware.JWTConfig{
 		Claims: &helper.JwtCustomClaims{},
-		SigningKey: []byte("secret"),
+		SigningKey: []byte(mySign),
 	}
 
 	r.Use(middleware.JWTWithConfig(config))

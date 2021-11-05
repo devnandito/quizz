@@ -12,10 +12,6 @@ type Role struct {
 	Operation []Operation `gorm:"many2many:role_operations;"`
 }
 
-// var (
-// 	roles = map[int]*Role{}
-// )
-
 // ShowRoleGorm show role
 func (r Role) ShowRoleGorm() ([]Role, error) {
 	conn := lib.NewConfig()

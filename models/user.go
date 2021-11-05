@@ -11,17 +11,10 @@ type User struct {
 	Username string `json:"username"`
 	Email string `json:"email"`
 	Password string `json:"password"`
-	Token string `json:"token"`
+	// Token string `json:"token"`
 	RoleID int `json:"roleid"`
 	Role Role
 }
-
-// type Error struct {
-// 	ResponseCode int `json:"rc"`
-// 	Message string `json:"message"`
-// 	Detail string `json:"detail"`
-// 	ExternalReference string `json:"ext_ref"`
-// }
 
 // ShowUserGorm show user
 func (u User) ShowUserGorm() ([]User, error) {
@@ -52,7 +45,7 @@ func (u User) CreateUserGorm(usr *User) (User, error) {
 		Username: usr.Username,
 		Email: usr.Email,
 		Password: usr.Password,
-		Token: usr.Token,
+		// Token: usr.Token,
 		RoleID: usr.RoleID,
 	}
 
@@ -63,7 +56,7 @@ func (u User) CreateUserGorm(usr *User) (User, error) {
 func (u User) UpdateUserGorm(id int, usr *User) (User, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	response := db.Model(&u).Where("id = ?", id).Updates(User{Username: usr.Username, Email: usr.Email, Token: usr.Token, RoleID: usr.RoleID})
+	response := db.Model(&u).Where("id = ?", id).Updates(User{Username: usr.Username, Email: usr.Email, RoleID: usr.RoleID})
 	return u, response.Error
 }
 

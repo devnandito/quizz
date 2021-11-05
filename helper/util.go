@@ -24,6 +24,10 @@ type Token struct {
 	TokenString string `json:"token"`
 }
 
+type ErrorMessage struct {
+	Message string `json:"message"`
+}
+
 func JwtGen(username string, role int) JwtCustomClaims {
 	claims := &JwtCustomClaims{
 		username,
@@ -48,6 +52,16 @@ func GenerateJWT(username string, role int) (jwt.MapClaims, string) {
 	return claims, mySigningKey
 }
 
+func CheckPasswordHash(password, hash string) bool {
+  err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+  return err == nil
+}
+
+func GetSecretKey() string {
+	var mySigningKey = "secret"
+	return mySigningKey
+}
+
 // func GenerateJWT(username string, role int) (string, error){
 // 	var mySigningKey = []byte("secret")
 // 	token := jwt.New(jwt.SigningMethodES256)
@@ -66,11 +80,6 @@ func GenerateJWT(username string, role int) (jwt.MapClaims, string) {
 
 // 	return tokenString, nil
 // }
-
-func CheckPasswordHash(password, hash string) bool {
-  err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-  return err == nil
-}
 
 // type httpError struct {
 // 	Code int

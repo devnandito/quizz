@@ -13,13 +13,14 @@ func ApiShowRole(c echo.Context) error {
 	var r models.Role
 	// user := c.Get("user").(*jwt.Token)
 	// claims := user.Claims.(*helper.JwtCustomClaims)
-	// name := claims.Name
+	// name := claims.Username
+	// role := claims.Role
 
 	rol, err := r.ShowRoleGorm()
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Println(name)
+	// fmt.Println(name, role)
 	return c.JSON(http.StatusOK, rol)
 }
 

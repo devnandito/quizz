@@ -11,6 +11,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+
+var msg helper.ErrorMessage
+
 // ApiShowUser show all client in json
 func ApiShowUser(c echo.Context) error {
 	var u models.User
@@ -30,8 +33,8 @@ func ApiCreateUser(c echo.Context) (err error) {
 	}
 
 	if usr.Email == "" {
-		return c.JSON(http.StatusBadRequest, "Email insn't empty")  
-		// return helper.NewHTTPError(http.StatusBadRequest, "InvalidID", "invalid user id")
+		msg.Message = "Email isn't empty!!"
+		return c.JSON(http.StatusBadRequest, msg)  
 	}
 
 	// hashing password
@@ -40,19 +43,10 @@ func ApiCreateUser(c echo.Context) (err error) {
 		return err
 	}
 
-	claims := helper.JwtGen(usr.Username, usr.RoleID)
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte("secret"))
-
-	if err != nil {
-		return err
-	}
-
 	data := &models.User{
 		Username: usr.Username,
 		Email: usr.Email,
 		Password: string(hash),
-		Token: string(t),
 		RoleID: usr.RoleID,
 	}
 
@@ -71,7 +65,6 @@ func ApiUpdateUser(c echo.Context) error {
 	data := &models.User{
 		Username: u.Username,
 		Email: u.Email,
-		Token: u.Token,
 		RoleID: u.RoleID,
 	}
 
@@ -91,14 +84,15 @@ func ApiGeneratorToken(c echo.Context) (err error) {
 		return
 	}
 
+	mySign := helper.GetSecretKey()
 	claims := helper.JwtGen(usr.Username, usr.RoleID)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte("secret"))
+	validToken, err := token.SignedString([]byte(mySign))
 
 	if err != nil {
 		return err
 	}
-	return c.JSON(http.StatusCreated, t)
+	return c.JSON(http.StatusCreated, validToken)
 }
 
 func SignIn(c echo.Context) (err error) {
@@ -121,12 +115,18 @@ func SignIn(c echo.Context) (err error) {
 	check := helper.CheckPasswordHash(authdetails.Password, response.Password)
 	
 	if !check {
-		return c.JSON(http.StatusBadRequest, "Username or Password incorrect!!!")
+		msg.Message = "Username or Password incorrect!!!"
+		return c.JSON(http.StatusBadRequest, msg)
 	}
 
-	claims, secret := helper.GenerateJWT(response.Username, response.RoleID)
+	keySign := helper.GetSecretKey()
+	claims := helper.JwtGen(response.Username, response.RoleID)
 	tokenString := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	validToken, err := tokenString.SignedString([]byte(secret))
+	validToken, err := tokenString.SignedString([]byte(keySign))
+
+	if err != nil {
+		return err
+	}
 	
 	var token helper.Token
 	token.Username = response.Username
