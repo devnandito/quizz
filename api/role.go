@@ -4,9 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/devnandito/quizz/helper"
 	"github.com/devnandito/quizz/models"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 )
 
@@ -25,30 +23,6 @@ func ApiShowRole(c echo.Context) error {
 	// fmt.Println(name, role)
 	return c.JSON(http.StatusOK, rol)
 }
-
-// ReadCookie get to cookies
-func ReadCookie(c echo.Context) error {
-	u := new(models.User)
-	cookie, err := c.Cookie("jwt")
-	if err != nil {
-		return err
-	}
-
-	secretKey := helper.GetSecretKey()
-	token, err := jwt.ParseWithClaims(cookie.Value, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error){
-		return []byte(secretKey), nil
-	})
-
-	if err != nil {
-		return c.JSON(http.StatusUnauthorized, "unautheticated")
-	}
-
-	claims := token.Claims.(*jwt.StandardClaims)
-	usr, _ := u.SearchUserID(claims.Issuer)
-
-	return c.JSON(http.StatusOK, usr)
-}
-
 
 // ApiCreateRole endpoit to insert role
 func ApiCreateRole(c echo.Context) (err error) {

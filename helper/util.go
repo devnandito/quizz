@@ -25,7 +25,7 @@ type Token struct {
 	TokenString string `json:"token"`
 }
 
-type ErrorMessage struct {
+type NewMessage struct {
 	Message string `json:"message"`
 }
 
@@ -42,18 +42,6 @@ func JwtGen(username string, role int, id uint) JwtCustomClaims {
 	return *claims
 }
 
-func GenerateJWT(username string, role int) (jwt.MapClaims, string) {
-	var mySigningKey = "secret"
-	token := jwt.New(jwt.SigningMethodES256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["authorized"] = true
-	claims["username"] = username
-	claims["role"] = role
-	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
-
-	return claims, mySigningKey
-}
-
 func CheckPasswordHash(password, hash string) bool {
   err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
   return err == nil
@@ -63,6 +51,24 @@ func GetSecretKey() string {
 	var mySigningKey = "secret"
 	return mySigningKey
 }
+
+func ValidUser(cookie string) (*jwt.Token, error) {
+	return jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error){
+		return []byte(GetSecretKey()), nil
+	})
+}
+
+// func GenerateJWT(username string, role int) (jwt.MapClaims, string) {
+// 	var mySigningKey = "secret"
+// 	token := jwt.New(jwt.SigningMethodES256)
+// 	claims := token.Claims.(jwt.MapClaims)
+// 	claims["authorized"] = true
+// 	claims["username"] = username
+// 	claims["role"] = role
+// 	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+
+// 	return claims, mySigningKey
+// }
 
 // func GenerateJWT(username string, role int) (string, error){
 // 	var mySigningKey = []byte("secret")

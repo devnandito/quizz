@@ -12,7 +12,7 @@ type User struct {
 	Email string `json:"email"`
 	Password string `json:"password"`
 	// Token string `json:"token"`
-	RoleID int `json:"roleid"`
+	RoleID int `json:"role"`
 	Role Role
 }
 

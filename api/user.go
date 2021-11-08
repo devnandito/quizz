@@ -13,7 +13,7 @@ import (
 )
 
 
-var msg helper.ErrorMessage
+var msg helper.NewMessage
 
 // ApiShowUser show all client in json
 func ApiShowUser(c echo.Context) error {
@@ -149,3 +149,47 @@ func SignIn(c echo.Context) (err error) {
 	
 	return c.JSON(http.StatusOK, token)
 }
+
+// User get information to cookies
+func User(c echo.Context) error {
+	unauth := helper.NewMessage {
+		Message: "unautheticated",
+	}
+
+	u := new(models.User)
+	cookie, err := c.Cookie("jwt")
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, unauth)
+	}
+
+	token, err := helper.ValidUser(cookie.Value)
+
+	if err != nil {
+		return c.JSON(http.StatusUnauthorized, unauth)
+	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
+	usr, _ := u.SearchUserID(claims.Issuer)
+
+	return c.JSON(http.StatusOK, usr)
+}
+
+func Logout(c echo.Context) error {
+	cookie := http.Cookie{
+		Name: "jwt",
+		Value: "",
+		Expires: time.Now().Add(-time.Hour),
+		HttpOnly: true,
+	}
+	c.SetCookie(&cookie)
+
+	msg := helper.NewMessage {
+		Message: "success",
+	}
+	return c.JSON(http.StatusOK, msg)
+}
+
+	// secretKey := helper.GetSecretKey()
+	// token, err := jwt.ParseWithClaims(cookie.Value, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error){
+	// 	return []byte(secretKey), nil
+	// })
