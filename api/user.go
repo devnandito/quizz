@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/devnandito/quizz/helper"
 	"github.com/devnandito/quizz/models"
@@ -85,7 +86,7 @@ func ApiGeneratorToken(c echo.Context) (err error) {
 	}
 
 	mySign := helper.GetSecretKey()
-	claims := helper.JwtGen(usr.Username, usr.RoleID)
+	claims := helper.JwtGen(usr.Username, usr.RoleID, usr.ID)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	validToken, err := token.SignedString([]byte(mySign))
 
@@ -113,16 +114,20 @@ func SignIn(c echo.Context) (err error) {
 
 	response, err := u.SearchUser(data)
 	check := helper.CheckPasswordHash(authdetails.Password, response.Password)
+
+	if err != nil {
+		panic(err)
+	}
 	
 	if !check {
 		msg.Message = "Username or Password incorrect!!!"
 		return c.JSON(http.StatusBadRequest, msg)
 	}
 
-	keySign := helper.GetSecretKey()
-	claims := helper.JwtGen(response.Username, response.RoleID)
+	secretKey := helper.GetSecretKey()
+	claims := helper.JwtGen(response.Username, response.RoleID, response.ID)
 	tokenString := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	validToken, err := tokenString.SignedString([]byte(keySign))
+	validToken, err := tokenString.SignedString([]byte(secretKey))
 
 	if err != nil {
 		return err
@@ -132,6 +137,15 @@ func SignIn(c echo.Context) (err error) {
 	token.Username = response.Username
 	token.Role = response.RoleID
 	token.TokenString = validToken
+
+	cookie := http.Cookie {
+		Name: "jwt",
+		Value: validToken,
+		Expires: time.Now().Add(time.Minute * 30),
+		HttpOnly: true,
+	}
+
+	c.SetCookie(&cookie)
 	
 	return c.JSON(http.StatusOK, token)
 }

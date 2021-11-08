@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -28,12 +29,13 @@ type ErrorMessage struct {
 	Message string `json:"message"`
 }
 
-func JwtGen(username string, role int) JwtCustomClaims {
+func JwtGen(username string, role int, id uint) JwtCustomClaims {
 	claims := &JwtCustomClaims{
 		username,
 		role,
 		jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute * 30).Unix(),
+			Issuer: strconv.Itoa(int(id)),
 		},
 	}
 	

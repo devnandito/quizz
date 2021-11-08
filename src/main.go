@@ -50,6 +50,7 @@ func main() {
 	e.POST("/api/gentoken", api.ApiGeneratorToken)
 	// Login
 	e.POST("api/sign-in", api.SignIn)
+	e.GET("api/readcookie", api.ReadCookie)
 	// Restricted group
 	r := e.Group("restricted")
 	// Configure middleware with custom claims type

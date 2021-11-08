@@ -36,20 +36,18 @@ func (u User) ShowUserGorm() ([]User, error) {
 }
 
 // CreateUserGorm insert a new user
-func (u User) CreateUserGorm(usr *User) (User, error) {
+func (u User) CreateUserGorm(data *User) (User, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	response := db.Create(&usr)
-
-	data := User {
-		Username: usr.Username,
-		Email: usr.Email,
-		Password: usr.Password,
-		// Token: usr.Token,
-		RoleID: usr.RoleID,
+	response := db.Create(&data)
+	user := User {
+		Username: u.Username,
+		Email: u.Email,
+		Password: u.Password,
+		RoleID: u.RoleID,
 	}
 
-	return data, response.Error
+	return user, response.Error
 }
 
 // UpdateUserGorm update user
@@ -60,9 +58,16 @@ func (u User) UpdateUserGorm(id int, usr *User) (User, error) {
 	return u, response.Error
 }
 
-func (u User) SearchUser(usr *User) (User, error) {
+func (u User) SearchUser(data *User) (User, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	response := db.Where("username = ?", usr.Username).Find(&u)
+	response := db.Where("username = ?", data.Username).Find(&u)
+	return u, response.Error
+}
+
+func (u User) SearchUserID(data string) (User, error) {
+	conn := lib.NewConfig()
+	db := conn.DsnStringGorm()
+	response := db.Where("id = ?", data).First(&u)
 	return u, response.Error
 }

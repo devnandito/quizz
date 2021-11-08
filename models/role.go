@@ -1,16 +1,25 @@
 package models
 
 import (
+	"time"
+
 	"github.com/devnandito/quizz/lib"
-	"gorm.io/gorm"
 )
 
 // Role access public
 type Role struct {
-	gorm.Model
+	ID uint `gorm:"primaryKey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt time.Time
 	Description string `json:"description"`
 	Operation []Operation `gorm:"many2many:role_operations;"`
 }
+// type Role struct {
+// 	gorm.Model
+// 	Description string `json:"description"`
+// 	Operation []Operation `gorm:"many2many:role_operations;"`
+// }
 
 // ShowRoleGorm show role
 func (r Role) ShowRoleGorm() ([]Role, error) {
@@ -32,15 +41,15 @@ func (r Role) ShowRoleGorm() ([]Role, error) {
 }
 
 // CreateRoleGorm insert a new role
-func (r Role) CreateRoleGorm(rol *Role) (Role, error) {
+func (r Role) CreateRoleGorm(data *Role) (Role, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	response := db.Create(&r)
-	data := Role {
+	response := db.Create(&data)
+	role := Role {
+		ID: r.ID,
 		Description: r.Description,
 	}
-
-	return data, response.Error
+	return role, response.Error
 }
 
 // UpdateRoleGorm  role edit
