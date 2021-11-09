@@ -11,9 +11,9 @@ func main() {
 	// Instanciar echo
 	e := echo.New()
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		// AllowOrigins: []string{"*"},
-		AllowOrigins: []string{"http://localhost:3000"},
+		AllowOrigins: []string{"http://localhost:3000","http://localhost:9000"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowCredentials: true,
 	}))
 	
 	// EndPoint clients

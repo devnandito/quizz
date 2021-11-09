@@ -68,6 +68,6 @@ func (u User) SearchUser(data *User) (User, error) {
 func (u User) SearchUserID(data string) (User, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	response := db.Where("id = ?", data).First(&u)
+	response := db.Where("id = ?", data).Find(&u)
 	return u, response.Error
 }

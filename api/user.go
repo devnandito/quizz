@@ -97,6 +97,9 @@ func ApiGeneratorToken(c echo.Context) (err error) {
 }
 
 func SignIn(c echo.Context) (err error) {
+	incorrect := helper.NewMessage {
+		Message: "Username or password incorrect!!",
+	}
 	u := new(models.User)
 	if err := c.Bind(u); err != nil {
 		return err
@@ -116,12 +119,12 @@ func SignIn(c echo.Context) (err error) {
 	check := helper.CheckPasswordHash(authdetails.Password, response.Password)
 
 	if err != nil {
-		panic(err)
+		return c.JSON(http.StatusBadRequest, incorrect)
 	}
 	
 	if !check {
-		msg.Message = "Username or Password incorrect!!!"
-		return c.JSON(http.StatusBadRequest, msg)
+		// msg.Message = "Username or Password incorrect!!!"
+		return c.JSON(http.StatusBadRequest, incorrect)
 	}
 
 	secretKey := helper.GetSecretKey()
