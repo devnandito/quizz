@@ -12,7 +12,7 @@ type User struct {
 	Email string `json:"email"`
 	Password string `json:"password"`
 	// Token string `json:"token"`
-	RoleID int `json:"roleid"`
+	RoleID int `json:"role"`
 	Role Role
 }
 
@@ -68,6 +68,6 @@ func (u User) SearchUser(data *User) (User, error) {
 func (u User) SearchUserID(data string) (User, error) {
 	conn := lib.NewConfig()
 	db := conn.DsnStringGorm()
-	response := db.Where("id = ?", data).First(&u)
+	response := db.Where("id = ?", data).Find(&u)
 	return u, response.Error
 }
